@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0d13">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>PasswordEngine</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,5A3,3 0 0,1 15,8C15,9.39 14.04,10.55 12.75,10.87L13.75,15H14.5A0.5,0.5 0 0,1 15,15.5V16.5A0.5,0.5 0 0,1 14.5,17H9.5A0.5,0.5 0 0,1 9,16.5V15.5A0.5,0.5 0 0,1 9.5,15H10.25L11.25,10.87C9.96,10.55 9,9.39 9,8A3,3 0 0,1 12,5M12,7A1,1 0 0,0 11,8A1,1 0 0,0 12,9A1,1 0 0,0 13,8A1,1 0 0,0 12,7Z"/>
+          </svg>
+        </div>
+        <h1>PasswordEngine</h1>
+      </div>
+      <div class="header-status">
+        <button id="lock-vault-btn" class="btn-icon" style="display: none;" title="Lock Vault">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Screens View -->
+    <main>
+      <!-- Screen 1: Generator -->
+      <section id="generator-tab" class="tab-content active">
+        <!-- Password Display Panel -->
+        <div class="display-panel">
+          <div class="password-container">
+            <div id="password-output" class="password-text placeholder">Click Generate</div>
+            <div class="action-buttons">
+              <button id="copy-password-btn" class="btn-icon" title="Copy Password">
+                <svg viewBox="0 0 24 24">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" fill="none"/>
+                </svg>
+              </button>
+              <button id="regen-password-btn" class="btn-icon" title="Regenerate">
+                <svg viewBox="0 0 24 24">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Strength Meter -->
+          <div class="strength-section">
+            <div class="strength-meta">
+              <span class="strength-label">Security level:</span>
+              <span id="strength-value" class="strength-value color-weak">Weak</span>
+            </div>
+            <div class="strength-bars">
+              <div class="strength-bar" id="strength-bar-1"></div>
+              <div class="strength-bar" id="strength-bar-2"></div>
+              <div class="strength-bar" id="strength-bar-3"></div>
+              <div class="strength-bar" id="strength-bar-4"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuration Panel -->
+        <div class="controls-panel">
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label">Password Length</span>
+              <span id="length-val" class="slider-value">16</span>
+            </div>
+            <input type="range" id="length-slider" min="8" max="64" value="16">
+          </div>
+
+          <div class="options-list">
+            <div class="option-item">
+              <div class="option-info">
+                <span class="option-title">Uppercase Letters</span>
+                <span class="option-desc">A-Z characters</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="opt-uppercase" checked>
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <div class="option-item">
+              <div class="option-info">
+                <span class="option-title">Lowercase Letters</span>
+                <span class="option-desc">a-z characters</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="opt-lowercase" checked>
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <div class="option-item">
+              <div class="option-info">
+                <span class="option-title">Numbers</span>
+                <span class="option-desc">0-9 digits</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="opt-numbers" checked>
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <div class="option-item">
+              <div class="option-info">
+                <span class="option-title">Special Characters</span>
+                <span class="option-desc">!@#$%^&* symbols</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="opt-symbols" checked>
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+            
+            <div class="option-item">
+              <div class="option-info">
+                <span class="option-title">Exclude Similar</span>
+                <span class="option-desc">Avoid o, O, 0, i, I, 1, l, L</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="opt-similar">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <button id="generate-btn" class="btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Generate Password
+          </button>
+        </div>
+      </section>
+
+      <!-- Screen 2: Vault -->
+      <section id="vault-tab" class="tab-content">
+        <!-- Vault Locked State -->
+        <div id="vault-locked-state" class="vault-lock-overlay">
+          <div class="lock-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h2 id="lock-state-title" class="lock-title">Encrypted Local Vault</h2>
+          <p id="lock-state-desc" class="lock-desc">Your credentials will be encrypted using industry-standard AES-GCM via the Web Crypto API.</p>
+          
+          <div id="master-password-setup-group" style="width: 100%; display: none;">
+            <div class="form-group">
+              <label for="setup-master-pw">Create Master Password</label>
+              <input type="password" id="setup-master-pw" class="input-field" placeholder="Must be at least 8 characters">
+            </div>
+            <div class="form-group">
+              <label for="setup-master-pw-confirm">Confirm Master Password</label>
+              <input type="password" id="setup-master-pw-confirm" class="input-field" placeholder="Re-enter master password">
+            </div>
+            <button id="btn-create-vault" class="btn-primary">Create Secure Vault</button>
+          </div>
+
+          <div id="master-password-login-group" style="width: 100%;">
+            <div class="form-group">
+              <label for="login-master-pw">Enter Master Password</label>
+              <input type="password" id="login-master-pw" class="input-field" placeholder="Enter master password to unlock">
+            </div>
+            <button id="btn-unlock-vault" class="btn-primary">Unlock Vault</button>
+          </div>
+        </div>
+
+        <!-- Vault Unlocked State -->
+        <div id="vault-unlocked-state" style="display: none;">
+          <div class="vault-header-row">
+            <h2 class="vault-title">Saved Logins</h2>
+            <button id="btn-add-credential" class="btn-secondary">
+              <svg viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Login
+            </button>
+          </div>
+
+          <div class="search-bar">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="vault-search" placeholder="Search accounts, websites...">
+          </div>
+
+          <div id="vault-items" class="vault-items-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Screen 3: Settings -->
+      <section id="settings-tab" class="tab-content">
+        <div class="settings-list">
+          
+          <div class="settings-group">
+            <span class="settings-group-title">Security Settings</span>
+            
+            <div class="settings-item" id="setting-change-password">
+              <div class="settings-item-info">
+                <div class="settings-item-icon">
+                  <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                </div>
+                <span class="settings-item-label">Change Master Password</span>
+              </div>
+              <span class="settings-item-value">&gt;</span>
+            </div>
+
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                </div>
+                <span class="settings-item-label">Auto-Lock Vault</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="setting-autolock" checked>
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <span class="settings-group-title">Data Management</span>
+            
+            <div class="settings-item" id="setting-export-vault">
+              <div class="settings-item-info">
+                <div class="settings-item-icon">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                </div>
+                <span class="settings-item-label">Backup Vault (Encrypted JSON)</span>
+              </div>
+              <span class="settings-item-value">&gt;</span>
+            </div>
+
+            <div class="settings-item" id="setting-import-vault">
+              <div class="settings-item-info">
+                <div class="settings-item-icon">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                </div>
+                <span class="settings-item-label">Restore Vault (Import)</span>
+              </div>
+              <span class="settings-item-value">&gt;</span>
+            </div>
+
+            <div class="settings-item" id="setting-clear-vault" style="color: var(--danger);">
+              <div class="settings-item-info">
+                <div class="settings-item-icon" style="color: var(--danger);">
+                  <svg viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                </div>
+                <span class="settings-item-label" style="font-weight: 600;">Destroy All Vault Data</span>
+              </div>
+              <span class="settings-item-value">&gt;</span>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <span class="settings-group-title">Application Info</span>
+            
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><line x1="12" y1="16" x2="12" y2="12" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12.01" y2="8" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+                <span class="settings-item-label">Version</span>
+              </div>
+              <span class="settings-item-value">v1.0.0 (PWA)</span>
+            </div>
+            
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                </div>
+                <span class="settings-item-label">Encryption standard</span>
+              </div>
+              <span class="settings-item-value">AES-256-GCM (PBKDF2)</span>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a class="nav-item active" data-tab="generator-tab">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span>Generator</span>
+      </a>
+      <a class="nav-item" data-tab="vault-tab">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+          <path d="M12 6v6l4 2"></path>
+        </svg>
+        <span>Vault</span>
+      </a>
+      <a class="nav-item" data-tab="settings-tab">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Password copied to clipboard</div>
+
+    <!-- Modals -->
+    <!-- Add/Edit Credential Modal -->
+    <div id="credential-modal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="modal-title" class="modal-title">Add New Login</h3>
+        
+        <div class="form-group">
+          <label for="cred-title">Title / Site Name</label>
+          <input type="text" id="cred-title" class="input-field" placeholder="e.g. Google, GitHub">
+        </div>
+        
+        <div class="form-group">
+          <label for="cred-username">Username / Email</label>
+          <input type="text" id="cred-username" class="input-field" placeholder="e.g. user@example.com">
+        </div>
+        
+        <div class="form-group" style="position: relative;">
+          <label for="cred-password">Password</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="cred-password" class="input-field mono" style="flex: 1;" placeholder="Enter password">
+            <button id="cred-gen-pw-btn" class="btn-secondary" style="padding: 0 12px;" title="Generate Password">Gen</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="cred-url">Website URL (Optional)</label>
+          <input type="text" id="cred-url" class="input-field" placeholder="e.g. https://google.com">
+        </div>
+
+        <div class="modal-buttons">
+          <button id="btn-cancel-modal" class="btn-secondary">Cancel</button>
+          <button id="btn-save-modal" class="btn-primary">Save Login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 320px; text-align: center;">
+        <h3 class="modal-title" style="color: var(--danger);" id="confirm-title">Are you sure?</h3>
+        <p id="confirm-message" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 8px 0;"></p>
+        <div class="modal-buttons">
+          <button id="btn-confirm-cancel" class="btn-secondary">Cancel</button>
+          <button id="btn-confirm-ok" class="btn-primary" style="background: var(--danger);">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
