@@ -8,7 +8,7 @@ const AuthConfig = {
   // Update these values after installing WP OAuth Server plugin
   wordpressUrl: 'https://eventregistration.live',
   clientId: 'Lfbhb6Q4iqan2DvMXy64BrbrscU4SjdgKVb9RRgz',           // Set this from WP OAuth Server → Clients
-  redirectUri: window.location.origin + '/callback.html',
+  redirectUri: new URL('callback.html', window.location.href).href,
 
   // ── OAuth Endpoints (WP OAuth Server defaults) ────────────────────────
   get authorizeEndpoint() {
