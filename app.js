@@ -1,5 +1,19 @@
 // DOM Elements
 const elements = {
+  // Login Screen
+  loginScreen: document.getElementById('login-screen'),
+  loginParticles: document.getElementById('login-particles'),
+  appContainer: document.getElementById('app-container'),
+  btnLoginWp: document.getElementById('btn-login-wp'),
+  btnLoginGoogle: document.getElementById('btn-login-google'),
+  btnLoginFacebook: document.getElementById('btn-login-facebook'),
+  btnLoginApple: document.getElementById('btn-login-apple'),
+
+  // User Profile (Header)
+  userProfileBadge: document.getElementById('user-profile-badge'),
+  userAvatar: document.getElementById('user-avatar'),
+  userDisplayName: document.getElementById('user-display-name'),
+
   // Navigation
   navItems: document.querySelectorAll('.nav-item'),
   tabContents: document.querySelectorAll('.tab-content'),
@@ -66,6 +80,9 @@ const elements = {
   settingExportVault: document.getElementById('setting-export-vault'),
   settingImportVault: document.getElementById('setting-import-vault'),
   settingClearVault: document.getElementById('setting-clear-vault'),
+  settingSignOut: document.getElementById('setting-sign-out'),
+  settingUserEmail: document.getElementById('setting-user-email'),
+  settingUserName: document.getElementById('setting-user-name'),
 
   // Toast
   toast: document.getElementById('toast'),
@@ -185,9 +202,14 @@ async function decryptVault(encryptedObj, password) {
 
 // Initialize UI
 function init() {
+  // Check authentication state first
+  if (AuthManager.isAuthenticated()) {
+    showApp();
+  } else {
+    showLoginScreen();
+  }
+
   setupEventListeners();
-  loadConfig();
-  checkVaultExists();
   generatePassword(); // Generate initial password on load
 
   // Register Service Worker for PWA offline support
@@ -200,16 +222,112 @@ function init() {
   }
 }
 
-// Save config preferences
+/* ==========================================================================
+   Authentication / Login Screen Logic
+   ========================================================================== */
+
+// Show the login screen and hide the app
+function showLoginScreen() {
+  elements.loginScreen.classList.remove('hiding', 'hidden');
+  elements.loginScreen.style.display = 'flex';
+  elements.appContainer.style.display = 'none';
+  createLoginParticles();
+}
+
+// Show the main app (user is authenticated)
+function showApp() {
+  // Populate user profile info
+  const displayName = AuthManager.getUserDisplayName();
+  const email = AuthManager.getUserEmail();
+  const avatar = AuthManager.getUserAvatar();
+
+  elements.userDisplayName.textContent = displayName;
+  if (avatar) {
+    elements.userAvatar.src = avatar;
+    elements.userAvatar.alt = displayName;
+  } else {
+    // Generate initial-based avatar
+    elements.userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=8b5cf6&color=fff&size=52&bold=true`;
+    elements.userAvatar.alt = displayName;
+  }
+  elements.userProfileBadge.style.display = 'flex';
+
+  // Update settings tab user info
+  elements.settingUserEmail.textContent = email || 'No email';
+  elements.settingUserName.textContent = displayName;
+
+  // Hide login screen with animation
+  elements.loginScreen.classList.add('hiding');
+  setTimeout(() => {
+    elements.loginScreen.classList.add('hidden');
+    elements.loginScreen.style.display = 'none';
+  }, 500);
+
+  // Show app container with entrance animation
+  elements.appContainer.style.display = 'flex';
+  elements.appContainer.classList.add('entering');
+  setTimeout(() => {
+    elements.appContainer.classList.remove('entering');
+  }, 500);
+
+  // Load per-user config and vault state
+  loadConfig();
+  checkVaultExists();
+}
+
+// Handle sign out
+async function handleSignOut() {
+  showConfirmModal('Sign Out', 'Are you sure you want to sign out? Your vault will be locked.', async () => {
+    // Lock vault first
+    lockVault();
+
+    // Clear auth session
+    await AuthManager.logout();
+
+    // Hide app, show login
+    elements.appContainer.style.display = 'none';
+    elements.userProfileBadge.style.display = 'none';
+    showLoginScreen();
+    showToast('Signed out successfully.');
+  });
+}
+
+// Create floating particles for login screen
+function createLoginParticles() {
+  const container = elements.loginParticles;
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (let i = 0; i < 20; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'login-particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.animationDuration = (8 + Math.random() * 12) + 's';
+    particle.style.animationDelay = (Math.random() * 10) + 's';
+    particle.style.width = (2 + Math.random() * 4) + 'px';
+    particle.style.height = particle.style.width;
+    particle.style.opacity = (0.1 + Math.random() * 0.4);
+
+    // Vary colors between purple and blue
+    const hue = 240 + Math.random() * 30;
+    particle.style.background = `hsla(${hue}, 80%, 65%, 0.3)`;
+
+    container.appendChild(particle);
+  }
+}
+
+// Save config preferences (per-user scoped)
 function saveConfig() {
-  localStorage.setItem('passwordEngine_config', JSON.stringify({
+  const key = AuthManager.isAuthenticated() ? AuthManager.getConfigStorageKey() : 'passwordEngine_config';
+  localStorage.setItem(key, JSON.stringify({
     autolock: state.autolock
   }));
 }
 
-// Load config preferences
+// Load config preferences (per-user scoped)
 function loadConfig() {
-  const raw = localStorage.getItem('passwordEngine_config');
+  const key = AuthManager.isAuthenticated() ? AuthManager.getConfigStorageKey() : 'passwordEngine_config';
+  const raw = localStorage.getItem(key);
   if (raw) {
     try {
       const cfg = JSON.parse(raw);
@@ -221,9 +339,10 @@ function loadConfig() {
   }
 }
 
-// Check if a vault already exists in local storage
+// Check if a vault already exists in local storage (per-user scoped)
 function checkVaultExists() {
-  const vaultData = localStorage.getItem('passwordEngine_vault');
+  const vaultKey = AuthManager.isAuthenticated() ? AuthManager.getVaultStorageKey() : 'passwordEngine_vault';
+  const vaultData = localStorage.getItem(vaultKey);
   if (vaultData) {
     elements.lockStateTitle.textContent = "Unlock Vault";
     elements.lockStateDesc.textContent = "Please enter your master password to decrypt your credentials.";
@@ -239,7 +358,13 @@ function checkVaultExists() {
 
 // Setup Event Listeners
 function setupEventListeners() {
-  // Navigation Tabs Switching
+  // ── Login Screen Events ──
+  elements.btnLoginWp.addEventListener('click', () => AuthManager.login());
+  elements.btnLoginGoogle.addEventListener('click', () => AuthManager.login());
+  elements.btnLoginFacebook.addEventListener('click', () => AuthManager.login());
+  elements.btnLoginApple.addEventListener('click', () => AuthManager.login());
+
+  // ── Navigation Tabs Switching ──
   elements.navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       const targetTab = item.getAttribute('data-tab');
@@ -304,6 +429,7 @@ function setupEventListeners() {
   elements.settingExportVault.addEventListener('click', exportEncryptedVaultFile);
   elements.settingImportVault.addEventListener('click', importVaultFileTrigger);
   elements.settingClearVault.addEventListener('click', handleDestructiveClearVault);
+  elements.settingSignOut.addEventListener('click', handleSignOut);
 
   // Confirm Modal cancellation/ok
   elements.btnConfirmCancel.addEventListener('click', () => elements.confirmModal.classList.remove('active'));
@@ -515,8 +641,9 @@ async function handleCreateVault() {
     const initialVaultStr = JSON.stringify([]);
     const encryptedObj = await encryptVault(initialVaultStr, master);
     
-    // Save to local storage
-    localStorage.setItem('passwordEngine_vault', JSON.stringify(encryptedObj));
+    // Save to local storage (per-user scoped)
+    const vaultKey = AuthManager.isAuthenticated() ? AuthManager.getVaultStorageKey() : 'passwordEngine_vault';
+    localStorage.setItem(vaultKey, JSON.stringify(encryptedObj));
     
     // Authenticate local session
     state.masterPassword = master;
@@ -543,7 +670,8 @@ async function handleUnlockVault() {
     return;
   }
 
-  const rawVault = localStorage.getItem('passwordEngine_vault');
+  const vaultKey = AuthManager.isAuthenticated() ? AuthManager.getVaultStorageKey() : 'passwordEngine_vault';
+  const rawVault = localStorage.getItem(vaultKey);
   if (!rawVault) {
     showToast('No database file found. Create database.');
     return;
@@ -604,7 +732,8 @@ async function saveVaultData() {
   try {
     const payloadStr = JSON.stringify(state.vault);
     const encryptedObj = await encryptVault(payloadStr, state.masterPassword);
-    localStorage.setItem('passwordEngine_vault', JSON.stringify(encryptedObj));
+    const vaultKey = AuthManager.isAuthenticated() ? AuthManager.getVaultStorageKey() : 'passwordEngine_vault';
+    localStorage.setItem(vaultKey, JSON.stringify(encryptedObj));
     return true;
   } catch (err) {
     console.error(err);
@@ -806,7 +935,8 @@ function handleInitiateChangePassword() {
 
 // Backup vault database (Encrypted JSON file download)
 function exportEncryptedVaultFile() {
-  const rawData = localStorage.getItem('passwordEngine_vault');
+  const vaultKey = AuthManager.isAuthenticated() ? AuthManager.getVaultStorageKey() : 'passwordEngine_vault';
+  const rawData = localStorage.getItem(vaultKey);
   if (!rawData) {
     showToast('Nothing to export. Vault is empty.');
     return;
@@ -855,8 +985,9 @@ function importVaultFileTrigger() {
         // Try decrypting to verify
         const decryptedStr = await decryptVault(parsed, pass);
         
-        // Save database file
-        localStorage.setItem('passwordEngine_vault', JSON.stringify(parsed));
+        // Save database file (per-user scoped)
+        const vaultKey = AuthManager.isAuthenticated() ? AuthManager.getVaultStorageKey() : 'passwordEngine_vault';
+        localStorage.setItem(vaultKey, JSON.stringify(parsed));
         
         // Update current session if matching
         state.masterPassword = pass;
@@ -879,7 +1010,8 @@ function importVaultFileTrigger() {
 // Clear vault (Wipes local storage database entirely)
 function handleDestructiveClearVault() {
   showConfirmModal('Destroy Vault Data?', 'WARNING: This will delete the secure vault and all stored credentials. There is no way to recover your data.', () => {
-    localStorage.removeItem('passwordEngine_vault');
+    const vaultKey = AuthManager.isAuthenticated() ? AuthManager.getVaultStorageKey() : 'passwordEngine_vault';
+    localStorage.removeItem(vaultKey);
     lockVault();
     showToast('Database wiped.');
   });

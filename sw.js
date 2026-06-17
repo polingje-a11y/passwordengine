@@ -1,12 +1,18 @@
-const CACHE_NAME = 'passwordengine-cache-v1';
+const CACHE_NAME = 'passwordengine-cache-v2';
 const ASSETS = [
   './',
   './index.html',
   './index.css',
+  './auth.js',
   './app.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
+];
+
+// Pages that should never be served from cache (auth flows need fresh responses)
+const NETWORK_ONLY = [
+  './callback.html'
 ];
 
 // Install Event - cache core resources
@@ -45,28 +51,31 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // If valid response, clone and update cache
-        if (response && response.status === 200) {
-          const resClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, resClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Fallback to cache if network request fails
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // If root request fails and cache is empty, fallback to index.html
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
-        });
-      })
+    // Check if this is a network-only request (e.g., OAuth callback)
+    NETWORK_ONLY.some(path => event.request.url.includes(path.replace('./', '')))
+      ? fetch(event.request)
+      : fetch(event.request)
+          .then((response) => {
+            // If valid response, clone and update cache
+            if (response && response.status === 200) {
+              const resClone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, resClone);
+              });
+            }
+            return response;
+          })
+          .catch(() => {
+            // Fallback to cache if network request fails
+            return caches.match(event.request).then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // If root request fails and cache is empty, fallback to index.html
+              if (event.request.mode === 'navigate') {
+                return caches.match('./index.html');
+              }
+            });
+          })
   );
 });
