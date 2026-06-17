@@ -26,44 +26,18 @@
       </div>
       <p class="login-subtitle">Secure password generation &amp; vault,<br>protected by your identity.</p>
 
-      <div class="login-buttons">
-        <button id="btn-login-wp" class="login-btn login-btn-primary" type="button">
-          <svg class="login-btn-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zM3.009 12c0-1.572.42-3.047 1.15-4.321l3.176 8.702A8.995 8.995 0 0 1 3.01 12zm8.991 9a8.96 8.96 0 0 1-2.77-.436l2.942-8.546 3.014 8.258c.02.047.042.09.067.132A8.93 8.93 0 0 1 12 21zm1.242-13.17c.59-.031 1.122-.094 1.122-.094.528-.063.466-.838-.063-.81 0 0-1.588.126-2.613.126-.963 0-2.582-.126-2.582-.126-.529-.028-.591.779-.063.81 0 0 .5.063 1.03.094l1.53 4.19-2.15 6.44-3.578-10.63c.59-.031 1.122-.094 1.122-.094.528-.063.466-.838-.063-.81 0 0-1.588.126-2.613.126-.184 0-.4-.005-.627-.013A8.978 8.978 0 0 1 12 3.01c2.235 0 4.27.815 5.84 2.16-.037-.002-.073-.007-.112-.007-.963 0-1.646.838-1.646 1.738 0 .807.466 1.49.963 2.297.373.652.807 1.49.807 2.7 0 .838-.322 1.81-.745 3.166l-.977 3.264-3.537-10.517zm5.583 1.906A8.986 8.986 0 0 1 20.99 12a8.99 8.99 0 0 1-4.173 7.59l2.564-7.41c.479-1.195.639-2.15.639-2.998 0-.308-.02-.594-.057-.858z"/>
-          </svg>
-          Sign in with WordPress
-        </button>
-
-        <div class="login-divider">
-          <span>or sign in via your WordPress account using</span>
+      <div class="login-form">
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" class="input-field" placeholder="Enter your username" autocomplete="username" spellcheck="false">
         </div>
-
-        <div class="login-social-row">
-          <button id="btn-login-google" class="login-btn login-btn-social login-btn-google" type="button" title="Sign in with Google">
-            <svg class="login-btn-icon" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Google
-          </button>
-          <button id="btn-login-facebook" class="login-btn login-btn-social login-btn-facebook" type="button" title="Sign in with Facebook">
-            <svg class="login-btn-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-            </svg>
-            Facebook
-          </button>
-          <button id="btn-login-apple" class="login-btn login-btn-social login-btn-apple" type="button" title="Sign in with Apple">
-            <svg class="login-btn-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.52-3.23 0-1.44.62-2.2.44-3.06-.4C3.79 16.17 4.36 9.08 8.91 8.82c1.28.07 2.17.74 2.92.78.95-.19 1.86-.9 2.89-.81 1.23.1 2.16.62 2.77 1.57-2.53 1.52-1.93 4.87.56 5.8-.46 1.2-1.07 2.38-2 3.12zM12.04 8.75c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-            </svg>
-            Apple
-          </button>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="input-field" placeholder="Enter your password" autocomplete="current-password">
         </div>
+        <p id="login-error-msg" class="login-error-msg"></p>
+        <button id="btn-login" class="login-btn login-btn-primary" type="button">Sign In</button>
       </div>
-
-      <p class="login-footer">Powered by <strong>eventregistration.live</strong></p>
     </div>
   </div>
 

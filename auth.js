@@ -7,7 +7,7 @@ const AuthConfig = {
   // ── WordPress OAuth Server Configuration ──────────────────────────────
   // Update these values after installing WP OAuth Server plugin
   wordpressUrl: 'https://eventregistration.live',
-  clientId: 'Lfbhb6Q4iqan2DvMXy64BrbrscU4SjdgKVb9RRgz',           // Set this from WP OAuth Server → Clients
+  clientId: 'yTyYckeyacjfXjzSsNMwfsqPGHOqujtM',
   redirectUri: new URL('callback.html', window.location.href).href,
 
   // ── OAuth Endpoints (WP OAuth Server defaults) ────────────────────────
@@ -189,33 +189,54 @@ const AuthManager = {
   },
 
   /**
-   * Initiate the OAuth login flow.
-   * Redirects the user to the WordPress authorization endpoint.
+   * Authenticate with username and password directly (OAuth password grant).
+   * Returns { success: boolean, error?: string }
    */
-  async login() {
-    const codeVerifier = generateCodeVerifier();
-    const codeChallenge = await generateCodeChallenge(codeVerifier);
-    const stateParam = generateState();
+  async loginWithCredentials(username, password) {
+    try {
+      const tokenResponse = await fetch(AuthConfig.tokenEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'password',
+          username,
+          password,
+          client_id: AuthConfig.clientId,
+          scope: 'openid profile email',
+        }).toString(),
+      });
 
-    // Store PKCE verifier and state in localStorage for use in callback
-    localStorage.setItem(AuthConfig.storagePrefix + 'pkce_verifier', codeVerifier);
-    localStorage.setItem(AuthConfig.storagePrefix + 'pkce_state', stateParam);
+      const tokenData = await tokenResponse.json();
 
-    // Build authorization URL
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: AuthConfig.clientId,
-      redirect_uri: AuthConfig.redirectUri,
-      state: stateParam,
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-      scope: 'openid profile email',
-    });
+      if (!tokenResponse.ok || tokenData.error) {
+        return {
+          success: false,
+          error: tokenData.error_description || tokenData.error || 'Invalid username or password.',
+        };
+      }
 
-    const authUrl = AuthConfig.authorizeEndpoint + '?' + params.toString();
+      // Fetch user info
+      const userResponse = await fetch(AuthConfig.userInfoEndpoint, {
+        headers: { 'Authorization': 'Bearer ' + tokenData.access_token },
+      });
 
-    // Redirect to WordPress login
-    window.location.href = authUrl;
+      let userData = {};
+      if (userResponse.ok) {
+        userData = await userResponse.json();
+      }
+
+      this.saveSession({
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token || null,
+        tokenType: tokenData.token_type || 'Bearer',
+        user: userData,
+      });
+
+      return { success: true };
+    } catch (err) {
+      console.error('Login error:', err);
+      return { success: false, error: 'Network error. Please check your connection.' };
+    }
   },
 
   /**

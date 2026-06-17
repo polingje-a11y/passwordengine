@@ -1160,14 +1160,22 @@ input:checked + .switch-slider:before {
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-.login-footer {
-  margin-top: 32px;
-  font-size: 12px;
-  color: var(--text-muted);
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.login-footer strong {
-  color: var(--text-secondary);
+.login-error-msg {
+  display: none;
+  font-size: 13px;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0;
 }
 
 /* ==========================================================================

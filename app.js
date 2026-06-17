@@ -4,10 +4,10 @@ const elements = {
   loginScreen: document.getElementById('login-screen'),
   loginParticles: document.getElementById('login-particles'),
   appContainer: document.getElementById('app-container'),
-  btnLoginWp: document.getElementById('btn-login-wp'),
-  btnLoginGoogle: document.getElementById('btn-login-google'),
-  btnLoginFacebook: document.getElementById('btn-login-facebook'),
-  btnLoginApple: document.getElementById('btn-login-apple'),
+  loginUsername: document.getElementById('login-username'),
+  loginPassword: document.getElementById('login-password'),
+  loginErrorMsg: document.getElementById('login-error-msg'),
+  btnLogin: document.getElementById('btn-login'),
 
   // User Profile (Header)
   userProfileBadge: document.getElementById('user-profile-badge'),
@@ -275,6 +275,38 @@ function showApp() {
   checkVaultExists();
 }
 
+// Handle credential-based login
+async function handleLogin() {
+  const username = elements.loginUsername.value.trim();
+  const password = elements.loginPassword.value;
+
+  if (!username || !password) {
+    showLoginError('Please enter your username and password.');
+    return;
+  }
+
+  elements.btnLogin.disabled = true;
+  elements.btnLogin.textContent = 'Signing in…';
+  elements.loginErrorMsg.style.display = 'none';
+
+  const result = await AuthManager.loginWithCredentials(username, password);
+
+  elements.btnLogin.disabled = false;
+  elements.btnLogin.textContent = 'Sign In';
+
+  if (result.success) {
+    elements.loginPassword.value = '';
+    showApp();
+  } else {
+    showLoginError(result.error || 'Sign in failed. Please try again.');
+  }
+}
+
+function showLoginError(msg) {
+  elements.loginErrorMsg.textContent = msg;
+  elements.loginErrorMsg.style.display = 'block';
+}
+
 // Handle sign out
 async function handleSignOut() {
   showConfirmModal('Sign Out', 'Are you sure you want to sign out? Your vault will be locked.', async () => {
@@ -359,10 +391,13 @@ function checkVaultExists() {
 // Setup Event Listeners
 function setupEventListeners() {
   // ── Login Screen Events ──
-  elements.btnLoginWp.addEventListener('click', () => AuthManager.login());
-  elements.btnLoginGoogle.addEventListener('click', () => AuthManager.login());
-  elements.btnLoginFacebook.addEventListener('click', () => AuthManager.login());
-  elements.btnLoginApple.addEventListener('click', () => AuthManager.login());
+  elements.btnLogin.addEventListener('click', handleLogin);
+  elements.loginPassword.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleLogin();
+  });
+  elements.loginUsername.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') elements.loginPassword.focus();
+  });
 
   // ── Navigation Tabs Switching ──
   elements.navItems.forEach(item => {
