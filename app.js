@@ -8,6 +8,10 @@ const elements = {
   loginPassword: document.getElementById('login-password'),
   loginErrorMsg: document.getElementById('login-error-msg'),
   btnLogin: document.getElementById('btn-login'),
+  btnForgotPassword: document.getElementById('btn-forgot-password'),
+  btnLoginGoogle: document.getElementById('btn-login-google'),
+  btnLoginFacebook: document.getElementById('btn-login-facebook'),
+  btnLoginApple: document.getElementById('btn-login-apple'),
 
   // User Profile (Header)
   userProfileBadge: document.getElementById('user-profile-badge'),
@@ -398,6 +402,13 @@ function setupEventListeners() {
   elements.loginUsername.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') elements.loginPassword.focus();
   });
+  elements.btnForgotPassword.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.open(AuthConfig.wordpressUrl + '/wp-login.php?action=lostpassword', '_blank', 'noopener,noreferrer');
+  });
+  elements.btnLoginGoogle.addEventListener('click', () => AuthManager.loginWithRedirect());
+  elements.btnLoginFacebook.addEventListener('click', () => AuthManager.loginWithRedirect());
+  elements.btnLoginApple.addEventListener('click', () => AuthManager.loginWithRedirect());
 
   // ── Navigation Tabs Switching ──
   elements.navItems.forEach(item => {

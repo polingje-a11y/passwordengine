@@ -1178,6 +1178,18 @@ input:checked + .switch-slider:before {
   margin: 0;
 }
 
+.login-forgot-link {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-top: -4px;
+}
+
+.login-forgot-link:hover {
+  color: var(--primary);
+}
+
 /* ==========================================================================
    User Profile Badge (Header)
    ========================================================================== */

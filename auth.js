@@ -240,6 +240,31 @@ const AuthManager = {
   },
 
   /**
+   * Initiate the OAuth authorization code + PKCE flow (used for social SSO buttons).
+   * Redirects the browser to the WordPress OAuth authorize page.
+   */
+  async loginWithRedirect() {
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+    const stateParam = generateState();
+
+    localStorage.setItem(AuthConfig.storagePrefix + 'pkce_verifier', codeVerifier);
+    localStorage.setItem(AuthConfig.storagePrefix + 'pkce_state', stateParam);
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: AuthConfig.clientId,
+      redirect_uri: AuthConfig.redirectUri,
+      state: stateParam,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      scope: 'openid profile email',
+    });
+
+    window.location.href = AuthConfig.authorizeEndpoint + '?' + params.toString();
+  },
+
+  /**
    * Handle the OAuth callback.
    * Exchanges the authorization code for tokens and fetches user info.
    * Returns { success: boolean, error?: string }
