@@ -133,40 +133,9 @@
     </div>
   </div>
 
-  <script src="auth.js"></script>
   <script>
-    (async function handleOAuthCallback() {
-      const loadingEl = document.getElementById('loading-state');
-      const errorEl = document.getElementById('error-state');
-      const errorMsgEl = document.getElementById('error-message');
-
-      try {
-        const queryString = window.location.search;
-
-        if (!queryString || queryString.length < 2) {
-          // No query params — redirect to main app
-          window.location.replace('./');
-          return;
-        }
-
-        const result = await AuthManager.handleCallback(queryString);
-
-        if (result.success) {
-          // Successfully authenticated — redirect to main app
-          window.location.replace('./');
-        } else {
-          // Show error
-          loadingEl.style.display = 'none';
-          errorEl.classList.add('show');
-          errorMsgEl.textContent = result.error || 'Authentication failed. Please try again.';
-        }
-      } catch (err) {
-        console.error('Callback processing error:', err);
-        loadingEl.style.display = 'none';
-        errorEl.classList.add('show');
-        errorMsgEl.textContent = 'An unexpected error occurred during authentication.';
-      }
-    })();
+    // Firebase sign-in uses popups — this callback page is no longer part of the auth flow.
+    window.location.replace('./');
   </script>
 </body>
 </html>
