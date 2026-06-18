@@ -205,8 +205,10 @@ async function decryptVault(encryptedObj, password) {
    ========================================================================== */
 
 // Initialize UI
-function init() {
-  // Check authentication state first
+async function init() {
+  // Wait for Firebase to report the initial auth state before deciding which screen to show
+  await AuthManager.authReady;
+
   if (AuthManager.isAuthenticated()) {
     showApp();
   } else {
@@ -402,13 +404,32 @@ function setupEventListeners() {
   elements.loginUsername.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') elements.loginPassword.focus();
   });
-  elements.btnForgotPassword.addEventListener('click', (e) => {
+  elements.btnForgotPassword.addEventListener('click', async (e) => {
     e.preventDefault();
-    window.open(AuthConfig.wordpressUrl + '/wp-login.php?action=lostpassword', '_blank', 'noopener,noreferrer');
+    const email = elements.loginUsername.value.trim();
+    if (!email) {
+      showLoginError('Enter your email address above to receive a reset link.');
+      return;
+    }
+    const result = await AuthManager.sendPasswordReset(email);
+    if (result.success) {
+      showLoginError('Password reset email sent — check your inbox.');
+    } else {
+      showLoginError(result.error || 'Failed to send reset email.');
+    }
   });
-  elements.btnLoginGoogle.addEventListener('click', () => AuthManager.loginWithRedirect());
-  elements.btnLoginFacebook.addEventListener('click', () => AuthManager.loginWithRedirect());
-  elements.btnLoginApple.addEventListener('click', () => AuthManager.loginWithRedirect());
+  elements.btnLoginGoogle.addEventListener('click', async () => {
+    const result = await AuthManager.loginWithGoogle();
+    if (result.success) { showApp(); } else { showLoginError(result.error); }
+  });
+  elements.btnLoginFacebook.addEventListener('click', async () => {
+    const result = await AuthManager.loginWithFacebook();
+    if (result.success) { showApp(); } else { showLoginError(result.error); }
+  });
+  elements.btnLoginApple.addEventListener('click', async () => {
+    const result = await AuthManager.loginWithApple();
+    if (result.success) { showApp(); } else { showLoginError(result.error); }
+  });
 
   // ── Navigation Tabs Switching ──
   elements.navItems.forEach(item => {
