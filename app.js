@@ -12,6 +12,12 @@ const elements = {
   btnLoginGoogle: document.getElementById('btn-login-google'),
   btnLoginFacebook: document.getElementById('btn-login-facebook'),
   btnLoginApple: document.getElementById('btn-login-apple'),
+  signupNameGroup: document.getElementById('signup-name-group'),
+  signupDisplayName: document.getElementById('signup-display-name'),
+  signupConfirmGroup: document.getElementById('signup-confirm-group'),
+  signupPasswordConfirm: document.getElementById('signup-password-confirm'),
+  authTogglePrompt: document.getElementById('auth-toggle-prompt'),
+  btnAuthToggle: document.getElementById('btn-auth-toggle'),
 
   // User Profile (Header)
   userProfileBadge: document.getElementById('user-profile-badge'),
@@ -100,7 +106,8 @@ const state = {
   isVaultLocked: true,
   autolock: true,
   editingCredId: null,   // Credential currently being edited
-  confirmCallback: null  // Callback for general confirm modal
+  confirmCallback: null, // Callback for general confirm modal
+  authMode: 'signin'     // 'signin' | 'signup'
 };
 
 // Character Sets for Generator
@@ -281,13 +288,33 @@ function showApp() {
   checkVaultExists();
 }
 
+// Toggle between sign-in and sign-up modes on the login screen
+function switchAuthMode(mode) {
+  state.authMode = mode;
+  const isSignUp = mode === 'signup';
+
+  elements.signupNameGroup.style.display = isSignUp ? 'block' : 'none';
+  elements.signupConfirmGroup.style.display = isSignUp ? 'block' : 'none';
+  elements.btnForgotPassword.style.display = isSignUp ? 'none' : 'block';
+  elements.btnLogin.textContent = isSignUp ? 'Create Account' : 'Sign In';
+  elements.authTogglePrompt.textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+  elements.btnAuthToggle.textContent = isSignUp ? 'Sign in' : 'Sign up';
+  elements.loginErrorMsg.style.display = 'none';
+  elements.loginUsername.value = '';
+  elements.loginPassword.value = '';
+  elements.signupPasswordConfirm.value = '';
+  elements.signupDisplayName.value = '';
+}
+
 // Handle credential-based login
 async function handleLogin() {
-  const username = elements.loginUsername.value.trim();
+  if (state.authMode === 'signup') return handleSignUp();
+
+  const email = elements.loginUsername.value.trim();
   const password = elements.loginPassword.value;
 
-  if (!username || !password) {
-    showLoginError('Please enter your username and password.');
+  if (!email || !password) {
+    showLoginError('Please enter your email and password.');
     return;
   }
 
@@ -295,7 +322,7 @@ async function handleLogin() {
   elements.btnLogin.textContent = 'Signing in…';
   elements.loginErrorMsg.style.display = 'none';
 
-  const result = await AuthManager.loginWithCredentials(username, password);
+  const result = await AuthManager.loginWithCredentials(email, password);
 
   elements.btnLogin.disabled = false;
   elements.btnLogin.textContent = 'Sign In';
@@ -305,6 +332,38 @@ async function handleLogin() {
     showApp();
   } else {
     showLoginError(result.error || 'Sign in failed. Please try again.');
+  }
+}
+
+// Handle new account registration
+async function handleSignUp() {
+  const email = elements.loginUsername.value.trim();
+  const password = elements.loginPassword.value;
+  const confirm = elements.signupPasswordConfirm.value;
+  const displayName = elements.signupDisplayName.value.trim();
+
+  if (!email || !password) {
+    showLoginError('Please enter your email and password.');
+    return;
+  }
+  if (password !== confirm) {
+    showLoginError('Passwords do not match.');
+    return;
+  }
+
+  elements.btnLogin.disabled = true;
+  elements.btnLogin.textContent = 'Creating account…';
+  elements.loginErrorMsg.style.display = 'none';
+
+  const result = await AuthManager.registerWithCredentials(email, password, displayName);
+
+  elements.btnLogin.disabled = false;
+  elements.btnLogin.textContent = 'Create Account';
+
+  if (result.success) {
+    showApp();
+  } else {
+    showLoginError(result.error || 'Sign up failed. Please try again.');
   }
 }
 
@@ -399,10 +458,20 @@ function setupEventListeners() {
   // ── Login Screen Events ──
   elements.btnLogin.addEventListener('click', handleLogin);
   elements.loginPassword.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleLogin();
+    if (e.key === 'Enter') {
+      if (state.authMode === 'signup') elements.signupPasswordConfirm.focus();
+      else handleLogin();
+    }
   });
   elements.loginUsername.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') elements.loginPassword.focus();
+  });
+  elements.signupPasswordConfirm.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSignUp();
+  });
+  elements.btnAuthToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchAuthMode(state.authMode === 'signin' ? 'signup' : 'signin');
   });
   elements.btnForgotPassword.addEventListener('click', async (e) => {
     e.preventDefault();

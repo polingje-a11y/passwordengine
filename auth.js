@@ -60,6 +60,19 @@ Object.assign(AuthManager, {
     return this._currentUser ? (this._currentUser.photoURL || '') : '';
   },
 
+  async registerWithCredentials(email, password, displayName) {
+    try {
+      const credential = await auth.createUserWithEmailAndPassword(email, password);
+      if (displayName) {
+        await credential.user.updateProfile({ displayName });
+      }
+      this._currentUser = auth.currentUser;
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: this._errorMessage(err) };
+    }
+  },
+
   async loginWithCredentials(email, password) {
     try {
       const credential = await auth.signInWithEmailAndPassword(email, password);
@@ -136,6 +149,10 @@ Object.assign(AuthManager, {
     switch (err.code) {
       case 'auth/invalid-email':
         return 'Invalid email address.';
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists.';
+      case 'auth/weak-password':
+        return 'Password must be at least 6 characters.';
       case 'auth/user-not-found':
       case 'auth/wrong-password':
       case 'auth/invalid-credential':
