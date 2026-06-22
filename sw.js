@@ -1,9 +1,10 @@
-const CACHE_NAME = 'passwordengine-cache-v3';
+const CACHE_NAME = 'passwordengine-cache-v4';
 const ASSETS = [
   './',
   './index.html',
   './index.css',
   './auth.js',
+  './notifications.js',
   './app.js',
   './manifest.json',
   './icon-192.png',
@@ -79,3 +80,91 @@ self.addEventListener('fetch', (event) => {
           })
   );
 });
+
+/* ==========================================================================
+   Push Notification Event Handlers
+   ========================================================================== */
+
+// Push Event — Receive push messages from FCM or server
+self.addEventListener('push', (event) => {
+  console.log('[Service Worker] Push received:', event);
+
+  let title = 'PasswordEngine';
+  let options = {
+    body: 'You have a new notification.',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    vibrate: [100, 50, 100],
+    tag: 'push-notification',
+    data: {
+      url: self.registration.scope,
+      timestamp: Date.now(),
+    },
+    actions: [
+      { action: 'open', title: 'Open App' },
+      { action: 'dismiss', title: 'Dismiss' },
+    ],
+  };
+
+  // Parse the push payload if available
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      if (payload.notification) {
+        title = payload.notification.title || title;
+        options.body = payload.notification.body || options.body;
+        options.tag = payload.notification.tag || options.tag;
+      } else if (payload.title) {
+        title = payload.title;
+        options.body = payload.body || options.body;
+        options.tag = payload.tag || options.tag;
+      }
+    } catch (e) {
+      // If not JSON, use as plain text body
+      const text = event.data.text();
+      if (text) {
+        options.body = text;
+      }
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// Notification Click — Open or focus the app when user taps a notification
+self.addEventListener('notificationclick', (event) => {
+  console.log('[Service Worker] Notification click:', event.notification.tag);
+  event.notification.close();
+
+  if (event.action === 'dismiss') {
+    return;
+  }
+
+  // Determine URL to open
+  const urlToOpen = (event.notification.data && event.notification.data.url)
+    ? event.notification.data.url
+    : self.registration.scope;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // If the app is already open in a tab, focus it
+      for (const client of windowClients) {
+        if (client.url.includes(self.registration.scope) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
+// Notification Close — Track dismissals (optional analytics hook)
+self.addEventListener('notificationclose', (event) => {
+  console.log('[Service Worker] Notification dismissed:', event.notification.tag);
+});
+

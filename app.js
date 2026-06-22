@@ -94,6 +94,14 @@ const elements = {
   settingUserEmail: document.getElementById('setting-user-email'),
   settingUserName: document.getElementById('setting-user-name'),
 
+  // Notification Settings
+  settingPushEnabled: document.getElementById('setting-push-enabled'),
+  settingPwReminders: document.getElementById('setting-pw-reminders'),
+  settingReminderDays: document.getElementById('setting-reminder-days'),
+  settingVaultLockNotify: document.getElementById('setting-vault-lock-notify'),
+  settingTestNotification: document.getElementById('setting-test-notification'),
+  notificationSubSettings: document.getElementById('notification-sub-settings'),
+
   // Toast
   toast: document.getElementById('toast'),
 };
@@ -232,6 +240,12 @@ async function init() {
         .then(reg => console.log('Service Worker registered:', reg.scope))
         .catch(err => console.warn('Service Worker registration failed:', err));
     });
+  }
+
+  // Initialize Push Notifications
+  if (typeof NotificationManager !== 'undefined') {
+    await NotificationManager.init();
+    syncNotificationUI();
   }
 }
 
@@ -377,6 +391,11 @@ async function handleSignOut() {
   showConfirmModal('Sign Out', 'Are you sure you want to sign out? Your vault will be locked.', async () => {
     // Lock vault first
     lockVault();
+
+    // Cleanup notification state
+    if (typeof NotificationManager !== 'undefined') {
+      NotificationManager.cleanup();
+    }
 
     // Clear auth session
     await AuthManager.logout();
@@ -566,6 +585,43 @@ function setupEventListeners() {
   elements.settingImportVault.addEventListener('click', importVaultFileTrigger);
   elements.settingClearVault.addEventListener('click', handleDestructiveClearVault);
   elements.settingSignOut.addEventListener('click', handleSignOut);
+
+  // ── Notification Settings ──
+  elements.settingPushEnabled.addEventListener('change', handleTogglePushNotifications);
+
+  elements.settingPwReminders.addEventListener('change', (e) => {
+    if (typeof NotificationManager !== 'undefined') {
+      NotificationManager.setPref('passwordReminders', e.target.checked);
+      showToast(`Password reminders ${e.target.checked ? 'enabled' : 'disabled'}`);
+    }
+  });
+
+  elements.settingReminderDays.addEventListener('change', (e) => {
+    if (typeof NotificationManager !== 'undefined') {
+      NotificationManager.setPref('reminderDays', parseInt(e.target.value));
+      showToast(`Reminder interval set to ${e.target.value} days`);
+    }
+  });
+
+  elements.settingVaultLockNotify.addEventListener('change', (e) => {
+    if (typeof NotificationManager !== 'undefined') {
+      NotificationManager.setPref('vaultLockNotify', e.target.checked);
+      showToast(`Vault lock alerts ${e.target.checked ? 'enabled' : 'disabled'}`);
+    }
+  });
+
+  elements.settingTestNotification.addEventListener('click', () => {
+    if (typeof NotificationManager !== 'undefined' && NotificationManager.isEnabled()) {
+      NotificationManager._showLocalNotification(
+        '🔔 Test Notification',
+        'Push notifications are working correctly for PasswordEngine!',
+        'test-notification'
+      );
+      showToast('Test notification sent!');
+    } else {
+      showToast('Enable push notifications first.');
+    }
+  });
 
   // Confirm Modal cancellation/ok
   elements.btnConfirmCancel.addEventListener('click', () => elements.confirmModal.classList.remove('active'));
@@ -840,6 +896,11 @@ function unlockVaultUI() {
   elements.vaultUnlockedState.style.display = 'block';
   elements.lockVaultBtn.style.display = 'flex';
   renderVaultItems();
+
+  // Trigger password age check on vault unlock
+  if (typeof NotificationManager !== 'undefined' && NotificationManager.isEnabled()) {
+    NotificationManager.checkPasswordAge(state.vault);
+  }
 }
 
 // Lock vault and flush security details from browser memory
@@ -856,6 +917,11 @@ function lockVault() {
   // Re-verify login screen is formatted correctly
   checkVaultExists();
   showToast('Vault locked.');
+
+  // Send vault lock notification
+  if (typeof NotificationManager !== 'undefined') {
+    NotificationManager.notifyVaultLocked();
+  }
 }
 
 // Encrypt and save vault content updates back into localStorage
@@ -1214,6 +1280,82 @@ function escapeHTML(str) {
       '"': '&quot;'
     }[tag] || tag)
   );
+}
+
+/* ==========================================================================
+   Push Notification Helpers
+   ========================================================================== */
+
+// Handle push notifications toggle
+async function handleTogglePushNotifications(e) {
+  if (typeof NotificationManager === 'undefined') return;
+
+  if (e.target.checked) {
+    // Request permission and enable
+    const result = await NotificationManager.requestPermission();
+
+    if (result === 'granted') {
+      showToast('Push notifications enabled');
+    } else if (result === 'denied') {
+      e.target.checked = false;
+      showToast('Notification permission was denied. Please enable it in browser settings.');
+    } else {
+      e.target.checked = false;
+      showToast('Notification permission was dismissed.');
+    }
+  } else {
+    // Disable notifications
+    NotificationManager.disable();
+    showToast('Push notifications disabled');
+  }
+
+  syncNotificationUI();
+}
+
+// Sync notification UI elements with current NotificationManager state
+function syncNotificationUI() {
+  if (typeof NotificationManager === 'undefined') return;
+
+  const prefs = NotificationManager.getPrefs();
+  const isEnabled = NotificationManager.isEnabled();
+  const isSupported = NotificationManager.isSupported();
+
+  // Main toggle
+  elements.settingPushEnabled.checked = isEnabled;
+
+  // Disable the toggle entirely if browser doesn't support notifications
+  if (!isSupported) {
+    elements.settingPushEnabled.disabled = true;
+    elements.settingPushEnabled.closest('.settings-item').classList.add('disabled');
+  }
+
+  // Sub-settings visibility (expand/collapse with animation)
+  if (isEnabled) {
+    elements.notificationSubSettings.classList.add('expanded');
+  } else {
+    elements.notificationSubSettings.classList.remove('expanded');
+  }
+
+  // Sync individual preference values
+  elements.settingPwReminders.checked = prefs.passwordReminders;
+  elements.settingReminderDays.value = String(prefs.reminderDays);
+  elements.settingVaultLockNotify.checked = prefs.vaultLockNotify;
+
+  // Settings nav relative positioning for notification dot
+  const settingsNav = document.querySelector('.nav-item[data-tab="settings-tab"]');
+  if (settingsNav) {
+    settingsNav.style.position = 'relative';
+    // Remove existing dot if any
+    const existingDot = settingsNav.querySelector('.notification-dot');
+    if (existingDot) existingDot.remove();
+
+    // Show attention dot if notifications are supported but not yet decided
+    if (isSupported && Notification.permission === 'default' && !prefs.enabled) {
+      const dot = document.createElement('span');
+      dot.className = 'notification-dot';
+      settingsNav.appendChild(dot);
+    }
+  }
 }
 
 // Bootstrap Application Load

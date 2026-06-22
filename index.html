@@ -320,6 +320,76 @@
           </div>
 
           <div class="settings-group">
+            <span class="settings-group-title">Notifications</span>
+            
+            <div class="settings-item" id="setting-notifications-toggle">
+              <div class="settings-item-info">
+                <div class="settings-item-icon">
+                  <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                </div>
+                <span class="settings-item-label">Push Notifications</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="setting-push-enabled">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <div id="notification-sub-settings" class="notification-sub-settings">
+              <div class="settings-item">
+                <div class="settings-item-info">
+                  <div class="settings-item-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                  </div>
+                  <span class="settings-item-label">Password Reminders</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setting-pw-reminders" checked>
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-item">
+                <div class="settings-item-info">
+                  <div class="settings-item-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+                  </div>
+                  <span class="settings-item-label">Remind After</span>
+                </div>
+                <select id="setting-reminder-days" class="settings-select">
+                  <option value="30">30 days</option>
+                  <option value="60">60 days</option>
+                  <option value="90" selected>90 days</option>
+                  <option value="180">180 days</option>
+                </select>
+              </div>
+
+              <div class="settings-item">
+                <div class="settings-item-info">
+                  <div class="settings-item-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                  </div>
+                  <span class="settings-item-label">Vault Lock Alerts</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setting-vault-lock-notify" checked>
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-item" id="setting-test-notification">
+                <div class="settings-item-info">
+                  <div class="settings-item-icon">
+                    <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                  </div>
+                  <span class="settings-item-label">Send Test Notification</span>
+                </div>
+                <span class="settings-item-value">&gt;</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
             <span class="settings-group-title">Data Management</span>
             
             <div class="settings-item" id="setting-export-vault">
@@ -486,8 +556,10 @@
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
   <script src="auth.js"></script>
+  <script src="notifications.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

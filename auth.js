@@ -145,6 +145,11 @@ Object.assign(AuthManager, {
     return uid ? 'passwordEngine_config_' + uid : 'passwordEngine_config';
   },
 
+  getNotificationStorageKey() {
+    const uid = this.getUserId();
+    return uid ? 'passwordEngine_notifications_' + uid : 'passwordEngine_notifications';
+  },
+
   _errorMessage(err) {
     switch (err.code) {
       case 'auth/invalid-email':
