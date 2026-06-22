@@ -1,4 +1,4 @@
-const CACHE_NAME = 'passwordengine-cache-v6';
+const CACHE_NAME = 'passwordengine-cache-v7';
 const ASSETS = [
   './',
   './index.html',

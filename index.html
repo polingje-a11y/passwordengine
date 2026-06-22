@@ -478,12 +478,21 @@
       <section id="announcements-tab" class="tab-content">
         <div class="announcements-header-row">
           <h2 class="announcements-title">Announcements</h2>
-          <button id="btn-refresh-announcements" class="btn-secondary" title="Refresh">
-            <svg viewBox="0 0 24 24">
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Refresh
-          </button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button id="btn-add-announcement" class="btn-secondary" style="display:none;" title="Add Announcement">
+              <svg viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"></line>
+                <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"></line>
+              </svg>
+              Add
+            </button>
+            <button id="btn-refresh-announcements" class="btn-secondary" title="Refresh">
+              <svg viewBox="0 0 24 24">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Refresh
+            </button>
+          </div>
         </div>
 
         <!-- Empty State -->
@@ -572,6 +581,45 @@
         <div class="modal-buttons">
           <button id="btn-cancel-modal" class="btn-secondary">Cancel</button>
           <button id="btn-save-modal" class="btn-primary">Save Login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcement Admin Modal -->
+    <div id="announcement-modal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="announcement-modal-title" class="modal-title">New Announcement</h3>
+
+        <div class="form-group">
+          <label for="ann-title">Title</label>
+          <input type="text" id="ann-title" class="input-field" placeholder="e.g. Version 2.1 Released">
+        </div>
+
+        <div class="form-group">
+          <label for="ann-body">Message</label>
+          <textarea id="ann-body" class="input-field ann-textarea" placeholder="Announcement details..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="ann-category">Category</label>
+          <select id="ann-category" class="settings-select ann-select">
+            <option value="feature">✨ New Feature</option>
+            <option value="update">🚀 Update</option>
+            <option value="security">🛡️ Security</option>
+            <option value="info">ℹ️ Info</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="ann-pin-label">
+            <input type="checkbox" id="ann-pinned" class="ann-pin-checkbox">
+            <span>Pin to top</span>
+          </label>
+        </div>
+
+        <div class="modal-buttons">
+          <button id="btn-cancel-announcement-modal" class="btn-secondary">Cancel</button>
+          <button id="btn-save-announcement-modal" class="btn-primary">Publish</button>
         </div>
       </div>
     </div>

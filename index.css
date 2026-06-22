@@ -1676,3 +1676,42 @@ input:checked + .switch-slider:before {
     opacity: 0.8;
   }
 }
+
+/* Announcement card header right side (pinned + admin controls) */
+.announcement-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Admin modal — textarea */
+.ann-textarea {
+  resize: vertical;
+  min-height: 90px;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+/* Admin modal — category select */
+.ann-select {
+  width: 100%;
+  padding: 10px 12px;
+}
+
+/* Admin modal — pin checkbox row */
+.ann-pin-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.ann-pin-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}

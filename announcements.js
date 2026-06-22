@@ -7,6 +7,9 @@ const AnnouncementsManager = {
   _announcements: [],
   _isLoading: false,
   _hasLoaded: false,
+  _editingId: null,
+  _listenersAttached: false,
+  _adminEmail: 'polingje@gmail.com',
 
   // Built-in fallback announcement (shown when Firestore is unreachable or empty)
   _fallbackAnnouncement: {
@@ -27,6 +30,7 @@ const AnnouncementsManager = {
    */
   async init() {
     if (this._hasLoaded || this._isLoading) return;
+    this._setupAdminUI();
     await this.loadAnnouncements();
   },
 
@@ -37,8 +41,120 @@ const AnnouncementsManager = {
     this._announcements = [];
     this._isLoading = false;
     this._hasLoaded = false;
+    this._editingId = null;
     const container = document.getElementById('announcements-list');
     if (container) container.innerHTML = '';
+    const btnAdd = document.getElementById('btn-add-announcement');
+    if (btnAdd) btnAdd.style.display = 'none';
+  },
+
+  /* ========================================================================
+     Admin — write operations (only available to the admin account)
+     ======================================================================== */
+
+  isAdmin() {
+    if (typeof AuthManager === 'undefined') return false;
+    return AuthManager.getUserEmail() === this._adminEmail;
+  },
+
+  _setupAdminUI() {
+    if (this._listenersAttached) return;
+    this._listenersAttached = true;
+
+    const btnAdd = document.getElementById('btn-add-announcement');
+    if (btnAdd && this.isAdmin()) {
+      btnAdd.style.display = 'inline-flex';
+      btnAdd.addEventListener('click', () => this.openAdminModal());
+    }
+
+    const btnCancel = document.getElementById('btn-cancel-announcement-modal');
+    const btnSave = document.getElementById('btn-save-announcement-modal');
+    if (btnCancel) btnCancel.addEventListener('click', () => this.closeAdminModal());
+    if (btnSave) btnSave.addEventListener('click', () => this.saveAnnouncement());
+  },
+
+  openAdminModal(id = null) {
+    this._editingId = id;
+    const modal = document.getElementById('announcement-modal');
+    if (!modal) return;
+
+    document.getElementById('announcement-modal-title').textContent =
+      id ? 'Edit Announcement' : 'New Announcement';
+    document.getElementById('btn-save-announcement-modal').textContent =
+      id ? 'Save Changes' : 'Publish';
+
+    if (id) {
+      const ann = this._announcements.find(a => a.id === id);
+      document.getElementById('ann-title').value = ann?.title || '';
+      document.getElementById('ann-body').value = ann?.body || '';
+      document.getElementById('ann-category').value = ann?.category || 'info';
+      document.getElementById('ann-pinned').checked = ann?.pinned || false;
+    } else {
+      document.getElementById('ann-title').value = '';
+      document.getElementById('ann-body').value = '';
+      document.getElementById('ann-category').value = 'feature';
+      document.getElementById('ann-pinned').checked = false;
+    }
+
+    modal.classList.add('active');
+    document.getElementById('ann-title').focus();
+  },
+
+  closeAdminModal() {
+    document.getElementById('announcement-modal')?.classList.remove('active');
+    this._editingId = null;
+  },
+
+  async saveAnnouncement() {
+    const titleVal = document.getElementById('ann-title')?.value.trim();
+    const bodyVal = document.getElementById('ann-body')?.value.trim();
+    const categoryVal = document.getElementById('ann-category')?.value || 'info';
+    const pinnedVal = document.getElementById('ann-pinned')?.checked || false;
+
+    const btn = document.getElementById('btn-save-announcement-modal');
+    if (!titleVal || !bodyVal) {
+      const orig = btn.textContent;
+      btn.textContent = 'Title & body required';
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    try {
+      if (this._editingId) {
+        await db.collection('announcements').doc(this._editingId).update({
+          title: titleVal,
+          body: bodyVal,
+          category: categoryVal,
+          pinned: pinnedVal,
+        });
+      } else {
+        await db.collection('announcements').add({
+          title: titleVal,
+          body: bodyVal,
+          category: categoryVal,
+          date: firebase.firestore.FieldValue.serverTimestamp(),
+          pinned: pinnedVal,
+        });
+      }
+      this.closeAdminModal();
+      await this.refresh();
+    } catch (err) {
+      console.error('[Announcements] Save failed:', err);
+      btn.disabled = false;
+      btn.textContent = this._editingId ? 'Save Changes' : 'Publish';
+    }
+  },
+
+  async deleteAnnouncementById(id) {
+    try {
+      await db.collection('announcements').doc(id).delete();
+      await this.refresh();
+    } catch (err) {
+      console.error('[Announcements] Delete failed:', err);
+    }
   },
 
   /* ========================================================================
@@ -159,12 +275,23 @@ const AnnouncementsManager = {
       const categoryMeta = this._getCategoryMeta(announcement.category);
       const relativeDate = this._formatRelativeDate(announcement.date);
 
+      const isAdmin = this.isAdmin();
       card.innerHTML = `
         <div class="announcement-card-header">
           <span class="announcement-badge ${categoryMeta.className}">
             ${categoryMeta.icon} ${categoryMeta.label}
           </span>
-          ${announcement.pinned ? '<span class="announcement-pinned" title="Pinned">📌</span>' : ''}
+          <div class="announcement-card-header-right">
+            ${announcement.pinned ? '<span class="announcement-pinned" title="Pinned">📌</span>' : ''}
+            ${isAdmin ? `
+              <button class="btn-icon ann-edit-btn" title="Edit">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+              </button>
+              <button class="btn-icon ann-delete-btn" title="Delete" style="color:var(--danger);">
+                <svg viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+              </button>
+            ` : ''}
+          </div>
         </div>
         <h3 class="announcement-card-title">${this._escapeHTML(announcement.title)}</h3>
         <p class="announcement-card-body">${this._escapeHTML(announcement.body)}</p>
@@ -172,6 +299,23 @@ const AnnouncementsManager = {
           <span class="announcement-date">${relativeDate}</span>
         </div>
       `;
+
+      if (isAdmin) {
+        card.querySelector('.ann-edit-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.openAdminModal(announcement.id);
+        });
+        card.querySelector('.ann-delete-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (typeof showConfirmModal !== 'undefined') {
+            showConfirmModal(
+              'Delete Announcement?',
+              `Are you sure you want to delete "${announcement.title}"? This cannot be undone.`,
+              () => this.deleteAnnouncementById(announcement.id)
+            );
+          }
+        });
+      }
 
       container.appendChild(card);
     });
