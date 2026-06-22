@@ -1,10 +1,11 @@
-const CACHE_NAME = 'passwordengine-cache-v4';
+const CACHE_NAME = 'passwordengine-cache-v5';
 const ASSETS = [
   './',
   './index.html',
   './index.css',
   './auth.js',
   './notifications.js',
+  './announcements.js',
   './app.js',
   './manifest.json',
   './icon-192.png',

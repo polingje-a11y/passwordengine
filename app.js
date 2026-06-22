@@ -247,6 +247,7 @@ async function init() {
     await NotificationManager.init();
     syncNotificationUI();
   }
+
 }
 
 /* ==========================================================================
@@ -300,6 +301,11 @@ function showApp() {
   // Load per-user config and vault state
   loadConfig();
   checkVaultExists();
+
+  // Load announcements for the signed-in user
+  if (typeof AnnouncementsManager !== 'undefined') {
+    AnnouncementsManager.init();
+  }
 }
 
 // Toggle between sign-in and sign-up modes on the login screen
@@ -395,6 +401,11 @@ async function handleSignOut() {
     // Cleanup notification state
     if (typeof NotificationManager !== 'undefined') {
       NotificationManager.cleanup();
+    }
+
+    // Reset announcements so the next sign-in gets fresh data
+    if (typeof AnnouncementsManager !== 'undefined') {
+      AnnouncementsManager.reset();
     }
 
     // Clear auth session
@@ -586,6 +597,17 @@ function setupEventListeners() {
   elements.settingClearVault.addEventListener('click', handleDestructiveClearVault);
   elements.settingSignOut.addEventListener('click', handleSignOut);
 
+  // ── Announcements ──
+  const btnRefreshAnnouncements = document.getElementById('btn-refresh-announcements');
+  if (btnRefreshAnnouncements) {
+    btnRefreshAnnouncements.addEventListener('click', () => {
+      if (typeof AnnouncementsManager !== 'undefined') {
+        AnnouncementsManager.refresh();
+        showToast('Refreshing announcements...');
+      }
+    });
+  }
+
   // ── Notification Settings ──
   elements.settingPushEnabled.addEventListener('change', handleTogglePushNotifications);
 
@@ -660,6 +682,10 @@ function switchTab(tabId) {
   });
 
   state.activeTab = tabId;
+
+  if (tabId === 'announcements-tab' && typeof AnnouncementsManager !== 'undefined') {
+    AnnouncementsManager.init();
+  }
 }
 
 /* ==========================================================================

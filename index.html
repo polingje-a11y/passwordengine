@@ -457,7 +457,7 @@
                 </div>
                 <span class="settings-item-label">Version</span>
               </div>
-              <span class="settings-item-value">v2.0.0 (PWA)</span>
+              <span class="settings-item-value">v2.1.0 (PWA)</span>
             </div>
             
             <div class="settings-item">
@@ -471,6 +471,36 @@
             </div>
           </div>
           
+        </div>
+      </section>
+
+      <!-- Screen 4: Announcements -->
+      <section id="announcements-tab" class="tab-content">
+        <div class="announcements-header-row">
+          <h2 class="announcements-title">Announcements</h2>
+          <button id="btn-refresh-announcements" class="btn-secondary" title="Refresh">
+            <svg viewBox="0 0 24 24">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div id="announcements-empty" class="announcements-empty" style="display: none;">
+          <div class="announcements-empty-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <p class="announcements-empty-text">No announcements yet.</p>
+          <p class="announcements-empty-sub">Check back later for news and updates.</p>
+        </div>
+
+        <!-- Announcements List -->
+        <div id="announcements-list" class="announcements-list">
+          <!-- Dynamically populated -->
         </div>
       </section>
     </main>
@@ -490,6 +520,13 @@
           <path d="M12 6v6l4 2"></path>
         </svg>
         <span>Vault</span>
+      </a>
+      <a class="nav-item" data-tab="announcements-tab">
+        <svg viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span>News</span>
       </a>
       <a class="nav-item" data-tab="settings-tab">
         <svg viewBox="0 0 24 24">
@@ -556,10 +593,12 @@
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
   <script src="auth.js"></script>
   <script src="notifications.js"></script>
+  <script src="announcements.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
