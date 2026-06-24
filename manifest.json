@@ -7,6 +7,8 @@
   "theme_color": "#0b0d13",
   "description": "Cryptographically secure password generator and encrypted local credential vault.",
   "orientation": "portrait-primary",
+  "id": "password.engine_2034z",
+  "categories": ["utilities", "productivity"],
   "icons": [
     {
       "src": "icon-192.png",
